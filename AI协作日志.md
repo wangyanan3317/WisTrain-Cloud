@@ -20,6 +20,22 @@
 
 ## 二、AI 协作记录
 
+### 2026-11-25（第 13 周：编码开工 · 全栈骨架）
+
+| 时间 | 阶段 | 协作内容 | 产出 |
+| --- | --- | --- | --- |
+| 14:12 | 视觉定调 | 依据设计说明书与前端设计 skill 锁定「工业实用」方向：等宽数字（JetBrains Mono）、发丝边框、信号橙 #FF6B2C 全站唯一强调色只给「解锁」 | 设计稿 dashboard-preview.html + tokens.css |
+| 14:20 | 后端骨架 | Spring Boot 3 + MyBatis 注解 SQL：9 实体 / 9 Mapper / 8 Service / 7 Controller，共 30 文件；JWT 拦截器 + 角色校验 + 部门数据隔离落地 | `wis-train-cloud/backend/` |
+| 14:35 | 核心机制 | PermissionService 权限联动落地：refreshUnlock（进度变更点亮 UNLOCK_TIME）+ checkAccess（会话前实时判定）；AgentChatService 支持 OpenAI 兼容 SSE 流式 + Mock 演示双通道 | 后端 service 层 |
+| 14:45 | 前端工程 | Vue 3 + Element Plus + Pinia：登录页（分栏工业风）、员工端 4 页（我的项目/学习中心/我的智能体/SSE 会话）、管理端 5 页（看板/项目/详情/智能体/员工），Axios 封装 + fetch 解析 SSE | `wis-train-cloud/frontend/` |
+| 14:55 | 数据库增补 | 发现设计缺口：「标记已学」需逐资料记录，补 tb_learn_record 表（唯一索引防重复）并更新建表脚本 | `sql/wistrain_cloud.sql` v1.1 |
+
+### 本周关键决策记录
+
+- **解锁判定实时计算优先**：管理员修改规则或增删资料后即时生效，避免冗余字段不一致（NF-08）。
+- **智能体协议适配**：定义 AgentAdapter 接口 + 平台枚举，满足「至少适配一个平台」约束，预留多平台扩展。
+- **物理外键可降级**：DDL 保留外键约束，联调阶段可视情况降级为逻辑外键，写入设计规范。
+
 ### 2026-11-22（第 12 周：架构·建模·设计）
 
 | 时间 | 阶段 | 协作内容 | 产出 |

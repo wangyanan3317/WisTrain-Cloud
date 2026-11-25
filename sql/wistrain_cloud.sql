@@ -140,6 +140,22 @@ CREATE TABLE tb_agent_session (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='智能体会话表';
 
 -- -------------------------------------------------------------
+-- 9. 学习记录表 tb_learn_record（设计补充：按资料记录「已学」）
+--    原数据字典仅有 PROGRESS 汇总字段，补齐「已学资料数」明细
+-- -------------------------------------------------------------
+CREATE TABLE tb_learn_record (
+  RECORD_ID    INT AUTO_INCREMENT COMMENT '记录ID' PRIMARY KEY,
+  PROJECT_ID   INT NOT NULL COMMENT '培训项目',
+  USER_ID      INT NOT NULL COMMENT '员工',
+  MATERIAL_ID  INT NOT NULL COMMENT '资料',
+  LEARN_TIME   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '学习时间',
+  UNIQUE KEY uk_project_user_material (PROJECT_ID, USER_ID, MATERIAL_ID),
+  KEY idx_record_user (USER_ID),
+  CONSTRAINT fk_record_project FOREIGN KEY (PROJECT_ID) REFERENCES tb_training_project (PROJECT_ID),
+  CONSTRAINT fk_record_material FOREIGN KEY (MATERIAL_ID) REFERENCES tb_training_material (MATERIAL_ID)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学习记录表';
+
+-- -------------------------------------------------------------
 -- 初始化示例数据（教学演示用）
 -- -------------------------------------------------------------
 INSERT INTO tb_department (DEPT_NAME, DEPT_CODE) VALUES ('软件研发部', 'RD'), ('产品运营部', 'PO');

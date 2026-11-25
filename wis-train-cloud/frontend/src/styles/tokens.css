@@ -1,0 +1,84 @@
+/* ============================================================
+   智培云设计令牌：工业实用方向（与 design/dashboard-preview.html 同源）
+   - 主色 60% 暖白基底 / 30% 近黑 / 强调 10% 信号橙（只给「解锁」）
+   - 等宽数字、发丝边框、直角几何
+   ============================================================ */
+:root {
+  /* 色彩 */
+  --bg: #F7F7F5;
+  --surface: #FFFFFF;
+  --surface-2: #EFEEEA;
+  --text: #1C1B1A;
+  --text-2: #57534E;
+  --text-3: #8A8580;
+  --accent: #1E5EFF;
+  --accent-deep: #0043C7;
+  --signal: #FF6B2C;          /* 全站唯一强调色：解锁 / 主操作 */
+  --ok: #0E8345;
+  --warn: #B45309;
+  --danger: #C22F2F;
+  --line: #E4E2DD;
+  --line-strong: #1C1B1A;
+  --dark: #1C1B1A;            /* 侧栏 / 品牌区深色面板 */
+  --dark-2: #262524;
+
+  /* 字体 */
+  --mono: "JetBrains Mono", "Cascadia Code", Consolas, "Courier New", monospace;
+  --sans: "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+  --fs-display: 44px;
+  --fs-h1: 28px;
+  --fs-h2: 16px;
+  --fs-body: 14px;
+  --fs-sm: 12px;
+
+  /* 几何 */
+  --r: 3px;                    /* 工业直角（微圆角） */
+  --r-lg: 6px;
+  --sh-1: 0 1px 2px rgba(28, 27, 26, .06);
+  --sh-2: 0 8px 24px rgba(28, 27, 26, .10);
+
+  /* 动效 */
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --dur-fast: 160ms;
+  --dur-base: 320ms;
+}
+
+/* Element Plus 圆角对齐工业风 */
+.el-button, .el-input__wrapper, .el-select__wrapper, .el-dialog, .el-card {
+  border-radius: var(--r) !important;
+}
+
+/* 等宽数字工具类 */
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* 工业网格氛围层（页面容器使用） */
+.grid-atmos {
+  position: relative;
+}
+.grid-atmos::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    linear-gradient(var(--line) 1px, transparent 1px) 0 0/48px 48px,
+    linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/48px 48px;
+  opacity: .3;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 55%);
+}
+
+/* 入场序列（3-6 组错峰 70ms） */
+.reveal { opacity: 0; transform: translateY(16px); }
+.reveal.in {
+  opacity: 1; transform: none;
+  transition: opacity var(--dur-base) var(--ease), transform var(--dur-base) var(--ease);
+}
+.reveal:nth-of-type(2) { transition-delay: 70ms; }
+.reveal:nth-of-type(3) { transition-delay: 140ms; }
+.reveal:nth-of-type(4) { transition-delay: 210ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  * { animation: none !important; }
+}
+
+/* 焦点可见性（可访问性） */
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
