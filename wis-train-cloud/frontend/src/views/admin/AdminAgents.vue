@@ -51,7 +51,14 @@
           <el-input v-model="form.agentEndpoint" class="mono" placeholder="留空则使用 Mock 流式演示" />
           <div class="endpoint-tip">DeepSeek: https://api.deepseek.com/chat/completions · 智谱: https://open.bigmodel.cn/api/paas/v4/chat/completions · 留空走 Mock</div>
         </el-form-item>
-        <el-form-item label="模型标识"><el-input v-model="form.agentModel" class="mono" placeholder="如 deepseek-chat / glm-4-flash" /></el-form-item>
+        <el-form-item label="模型标识">
+          <el-select v-model="form.agentModel" filterable allow-create default-first-option class="mono" style="width: 100%" placeholder="选择或输入模型名">
+            <el-option value="deepseek-chat" label="deepseek-chat（DeepSeek 通用）" />
+            <el-option value="deepseek-reasoner" label="deepseek-reasoner（DeepSeek 推理）" />
+            <el-option value="glm-4-flash" label="glm-4-flash（智谱·免费）" />
+            <el-option value="gpt-4o-mini" label="gpt-4o-mini（OpenAI）" />
+          </el-select>
+        </el-form-item>
         <el-form-item label="简介/人设"><el-input v-model="form.agentDesc" type="textarea" :rows="2" placeholder="智能体用途与人设——真实 AI 模式下会作为 system 提示词注入模型" /></el-form-item>
       </el-form>
       <template #footer>
