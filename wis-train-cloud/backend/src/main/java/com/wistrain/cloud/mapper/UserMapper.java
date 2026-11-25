@@ -9,10 +9,10 @@ import java.util.Map;
 @Mapper
 public interface UserMapper {
 
-    @Select("SELECT * FROM tb_user WHERE USER_LOGNAME = #{logname}")
+    @Select("SELECT USER_ID AS userId, USER_LOGNAME AS logname, USER_PWD AS pwd, USER_REALNAME AS realname, USER_EMAIL AS email, USER_ROLE AS role, USER_STATE AS state, DEPT_ID AS deptId, CREATE_TIME AS createTime FROM tb_user WHERE USER_LOGNAME = #{logname}")
     User findByLogname(String logname);
 
-    @Select("SELECT * FROM tb_user WHERE USER_ID = #{id}")
+    @Select("SELECT USER_ID AS userId, USER_LOGNAME AS logname, USER_PWD AS pwd, USER_REALNAME AS realname, USER_EMAIL AS email, USER_ROLE AS role, USER_STATE AS state, DEPT_ID AS deptId, CREATE_TIME AS createTime FROM tb_user WHERE USER_ID = #{id}")
     User findById(Long id);
 
     @Insert("INSERT INTO tb_user(USER_LOGNAME, USER_PWD, USER_REALNAME, USER_EMAIL, USER_ROLE, USER_STATE, DEPT_ID) " +
@@ -27,11 +27,11 @@ public interface UserMapper {
     int updateState(@Param("id") Long id, @Param("state") Integer state);
 
     /** 管理员分页查询本部门员工（US-501），keyword 模糊匹配登录名/姓名 */
-    @Select("<script>SELECT * FROM tb_user WHERE USER_ROLE = 2 AND DEPT_ID = #{deptId}" +
+    @Select("<script>SELECT USER_ID AS userId, USER_LOGNAME AS logname, USER_PWD AS pwd, USER_REALNAME AS realname, USER_EMAIL AS email, USER_ROLE AS role, USER_STATE AS state, DEPT_ID AS deptId, CREATE_TIME AS createTime FROM tb_user WHERE USER_ROLE = 2 AND DEPT_ID = #{deptId}" +
             "<if test='keyword != null and keyword != \"\"'> AND (USER_LOGNAME LIKE CONCAT('%',#{keyword},'%') OR USER_REALNAME LIKE CONCAT('%',#{keyword},'%'))</if>" +
             " ORDER BY USER_ID DESC LIMIT #{offset}, #{size}</script>")
     List<User> pageEmployee(@Param("deptId") Long deptId, @Param("keyword") String keyword,
-                            @Param("offset") long offset, @Param("size") int size);
+                            @Param("offset") long offset, @Param("size") long size);
 
     @Select("<script>SELECT COUNT(*) FROM tb_user WHERE USER_ROLE = 2 AND DEPT_ID = #{deptId}" +
             "<if test='keyword != null and keyword != \"\"'> AND (USER_LOGNAME LIKE CONCAT('%',#{keyword},'%') OR USER_REALNAME LIKE CONCAT('%',#{keyword},'%'))</if></script>")

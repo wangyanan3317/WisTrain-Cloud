@@ -31,7 +31,7 @@ public interface ProjectMapper {
             "<if test='state != null'> AND PROJECT_STATE = #{state}</if>" +
             " ORDER BY PROJECT_ID DESC LIMIT #{offset}, #{size}</script>")
     List<TrainingProject> pageByDept(@Param("deptId") Long deptId, @Param("keyword") String keyword,
-                                     @Param("state") Integer state, @Param("offset") long offset, @Param("size") int size);
+                                     @Param("state") Integer state, @Param("offset") long offset, @Param("size") long size);
 
     @Select("<script>SELECT COUNT(*) FROM tb_training_project WHERE DEPT_ID = #{deptId}" +
             "<if test='keyword != null and keyword != \"\"'> AND PROJECT_NAME LIKE CONCAT('%',#{keyword},'%')</if>" +

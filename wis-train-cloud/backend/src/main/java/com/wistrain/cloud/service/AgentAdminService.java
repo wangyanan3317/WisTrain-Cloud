@@ -2,6 +2,7 @@ package com.wistrain.cloud.service;
 
 import com.wistrain.cloud.common.BizException;
 import com.wistrain.cloud.common.CryptoUtil;
+import com.wistrain.cloud.dto.PageResult;
 import com.wistrain.cloud.entity.Agent;
 import com.wistrain.cloud.entity.ProjectAgent;
 import com.wistrain.cloud.entity.TrainingProject;
@@ -31,9 +32,9 @@ public class AgentAdminService {
     @Value("${wistrain.aes-key}")
     private String aesKey;
 
-    public AgentAdminService.Page list(Long deptId, String keyword, long pageNum, long pageSize) {
+    public PageResult<Agent> list(Long deptId, String keyword, long pageNum, long pageSize) {
         long offset = (pageNum - 1) * pageSize;
-        return new Page(agentMapper.countByDept(deptId, keyword),
+        return PageResult.of(agentMapper.countByDept(deptId, keyword),
                 agentMapper.pageByDept(deptId, keyword, offset, pageSize));
     }
 
@@ -112,6 +113,5 @@ public class AgentAdminService {
         return a;
     }
 
-    public record Page(long total, List<Agent> items) {}
     public record RuleItem(Long agentId, Integer unlockRule, Integer unlockThreshold) {}
 }

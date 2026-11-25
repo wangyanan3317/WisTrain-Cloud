@@ -1,6 +1,7 @@
 package com.wistrain.cloud.service;
 
 import com.wistrain.cloud.common.BizException;
+import com.wistrain.cloud.dto.PageResult;
 import com.wistrain.cloud.entity.*;
 import com.wistrain.cloud.mapper.*;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,9 @@ public class ProjectAdminService {
     private final LearnRecordMapper learnRecordMapper;
     private final LearningService learningService;
 
-    public Page list(Long deptId, String keyword, Integer state, long pageNum, long pageSize) {
+    public PageResult<TrainingProject> list(Long deptId, String keyword, Integer state, long pageNum, long pageSize) {
         long offset = (pageNum - 1) * pageSize;
-        return new Page(projectMapper.countByDept(deptId, keyword, state),
+        return PageResult.of(projectMapper.countByDept(deptId, keyword, state),
                 projectMapper.pageByDept(deptId, keyword, state, offset, pageSize));
     }
 
@@ -153,6 +154,4 @@ public class ProjectAdminService {
         }
         return p;
     }
-
-    public record Page(long total, List<TrainingProject> items) {}
 }

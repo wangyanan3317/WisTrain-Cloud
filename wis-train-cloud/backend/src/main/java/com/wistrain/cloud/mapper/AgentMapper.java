@@ -32,7 +32,7 @@ public interface AgentMapper {
             "<if test='keyword != null and keyword != \"\"'> AND AGENT_NAME LIKE CONCAT('%',#{keyword},'%')</if>" +
             " ORDER BY AGENT_ID DESC LIMIT #{offset}, #{size}</script>")
     List<Agent> pageByDept(@Param("deptId") Long deptId, @Param("keyword") String keyword,
-                           @Param("offset") long offset, @Param("size") int size);
+                           @Param("offset") long offset, @Param("size") long size);
 
     @Select("<script>SELECT COUNT(*) FROM tb_agent WHERE DEPT_ID = #{deptId}" +
             "<if test='keyword != null and keyword != \"\"'> AND AGENT_NAME LIKE CONCAT('%',#{keyword},'%')</if></script>")

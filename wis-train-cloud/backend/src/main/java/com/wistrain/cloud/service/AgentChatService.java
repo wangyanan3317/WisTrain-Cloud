@@ -126,7 +126,7 @@ public class AgentChatService {
         String apiKey = CryptoUtil.decrypt(agent.getAgentApiKey(), aesKey);
         boolean mock = agent.getAgentEndpoint() == null || agent.getAgentEndpoint().isBlank();
 
-        Thread.startVirtualThread(() -> {
+        new Thread(() -> {
             try {
                 if (mock) {
                     streamMock(emitter, agent, message);
@@ -140,7 +140,7 @@ public class AgentChatService {
                 log.warn("智能体流式响应异常: {}", e.getMessage());
                 sendError(emitter, "调用失败，请重试");
             }
-        });
+        }, "agent-stream").start();
         return emitter;
     }
 
