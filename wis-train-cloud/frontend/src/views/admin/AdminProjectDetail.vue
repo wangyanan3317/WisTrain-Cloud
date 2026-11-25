@@ -53,8 +53,8 @@
           <el-button class="mono" type="warning" @click="assign">分配</el-button>
         </div>
         <el-table :data="members" class="tbl">
-          <el-table-column prop="userRealname" label="姓名" width="120" />
-          <el-table-column prop="userLogname" label="登录名" class-name="mono" min-width="140" />
+          <el-table-column prop="realname" label="姓名" width="120" />
+          <el-table-column prop="logname" label="登录名" class-name="mono" min-width="140" />
           <el-table-column label="进度" width="180">
             <template #default="{ row }">
               <div class="bar"><i :style="{ '--w': row.progress + '%' }"></i></div>
