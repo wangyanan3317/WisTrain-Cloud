@@ -140,9 +140,13 @@ public class AgentChatService {
                 sessionMapper.touch(session.getSessionId());
                 emitter.send(SseEmitter.event().name("done").data(String.valueOf(session.getSessionId())));
                 emitter.complete();
+            } catch (BizException be) {
+                sendError(emitter, be.getMessage());
             } catch (Exception e) {
-                log.warn("智能体流式响应异常: {}", e.getMessage());
-                sendError(emitter, "调用失败，请重试");
+                log.warn("智能体流式响应异常", e);
+                String cause = e.getCause() != null && e.getCause().getMessage() != null
+                        ? e.getCause().getMessage() : e.getMessage();
+                sendError(emitter, "调用失败：" + cause + "（未配接口地址的智能体走 Mock 演示，不会失败）");
             }
         }, "agent-stream").start();
         return emitter;
@@ -255,7 +259,17 @@ public class AgentChatService {
                 .put("stream", true)
                 .set("messages", messages)
                 .toString();
-        HttpRequest request = HttpRequest.newBuilder(URI.create(agent.getAgentEndpoint()))
+        // 端点格式校验：填了非法地址（如 "HTTP"）时给出明确提示，而不是笼统的调用失败
+        java.net.URI uri;
+        try {
+            uri = URI.create(agent.getAgentEndpoint().trim());
+        } catch (IllegalArgumentException e) {
+            throw new BizException("接口地址格式不正确：" + agent.getAgentEndpoint() + "（应为 https://api.xxx.com/chat/completions，留空则使用 Mock 演示）");
+        }
+        if (uri.getScheme() == null || !uri.getScheme().startsWith("http")) {
+            throw new BizException("接口地址必须以 http(s):// 开头，当前：" + agent.getAgentEndpoint());
+        }
+        HttpRequest request = HttpRequest.newBuilder(uri)
                 .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + apiKey)
