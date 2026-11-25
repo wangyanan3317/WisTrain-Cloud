@@ -19,5 +19,6 @@ public class MyAgentVO {
     private Integer unlockRule;
     private Integer unlockThreshold;
     private Integer progress;       // 关联项目的学习进度
+    private Integer projectState;   // 1 进行中 / 2 已归档（归档项目关闭智能体访问）
     private LocalDateTime unlockTime;
 }

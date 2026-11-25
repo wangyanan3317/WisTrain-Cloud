@@ -48,7 +48,8 @@
       <el-tab-pane :label="'成员（' + members.length + '）'" name="members">
         <div class="row-ops">
           <el-select v-model="pickUser" multiple filterable placeholder="选择员工批量分配" style="width: 380px">
-            <el-option v-for="u in users" :key="u.userId" :value="u.userId" :label="u.realname + '（' + u.logname + '）'" />
+            <el-option v-for="u in assignableUsers" :key="u.userId" :value="u.userId" :label="u.realname + '（' + u.logname + '）'" />
+            <template #empty><span class="mono" style="font-size:12px">本部门员工均已加入</span></template>
           </el-select>
           <el-button class="mono" type="warning" @click="assign">分配</el-button>
         </div>
@@ -93,7 +94,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { adminApi } from '../../api/modules'
@@ -109,10 +110,22 @@ const config = ref([])
 const pickUser = ref([])
 const mat = reactive({ materialName: '', materialType: 1, materialUrl: '' })
 
+/** 可分配员工 = 全部在职员工 − 已是成员（避免重复选择） */
+const assignableUsers = computed(() => {
+  const memberIds = new Set(members.value.map(m => m.userId))
+  return users.value.filter(u => !memberIds.has(u.userId))
+})
+
 async function load() {
   stats.value = await adminApi.projectStats(projectId)
   materials.value = await adminApi.materialsOf(projectId)
   members.value = await adminApi.members(projectId)
+}
+
+/** 加载本部门员工列表（分配下拉数据源，US-502） */
+async function loadUsers() {
+  const res = await adminApi.userPage({ pageNum: 1, pageSize: 100 })
+  users.value = res.items || []
 }
 
 async function addMaterial() {
@@ -154,16 +167,24 @@ async function removeMember(row) {
 }
 
 async function loadConfig() {
-  const rows = await adminApi.agentConfig(projectId)
-  // 与本部门全部智能体并集展示（勾选状态 = 已关联）
-  config.value = rows.map(r => ({
-    on: true,
-    agentId: r.agentId,
-    agentName: r.agentName,
-    agentPlatform: r.agentPlatform,
-    unlockRule: r.unlockRule,
-    unlockThreshold: r.unlockThreshold
-  }))
+  // 并集展示：本部门全部智能体 + 已关联标记（US-403）
+  // 已关联的 → 勾选并带当前规则；未关联的 → 不勾选，默认"完成全部资料"规则
+  const [rows, agentsRes] = await Promise.all([
+    adminApi.agentConfig(projectId),
+    adminApi.agentPage({ pageNum: 1, pageSize: 100 })
+  ])
+  const assocMap = new Map(rows.map(r => [r.agentId, r]))
+  config.value = (agentsRes.items || []).map(a => {
+    const r = assocMap.get(a.agentId)
+    return {
+      on: !!r,
+      agentId: a.agentId,
+      agentName: a.agentName,
+      agentPlatform: a.agentPlatform,
+      unlockRule: r ? r.unlockRule : 1,
+      unlockThreshold: r ? r.unlockThreshold : 60
+    }
+  })
 }
 
 async function saveConfig() {
@@ -171,10 +192,12 @@ async function saveConfig() {
     .map(c => ({ agentId: c.agentId, unlockRule: c.unlockRule, unlockThreshold: c.unlockRule === 2 ? c.unlockThreshold : null }))
   await adminApi.saveAgentConfig(projectId, items)
   ElMessage.success('权限关联已保存，实时生效')
+  await loadConfig()
 }
 
 onMounted(() => {
   load()
+  loadUsers()
   loadConfig()
 })
 </script>

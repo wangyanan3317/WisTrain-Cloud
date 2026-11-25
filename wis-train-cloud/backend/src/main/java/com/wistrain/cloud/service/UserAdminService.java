@@ -25,6 +25,7 @@ public class UserAdminService {
         long offset = (pageNum - 1) * pageSize;
         List<User> items = userMapper.pageEmployee(deptId, keyword, offset, pageSize);
         long total = userMapper.countEmployee(deptId, keyword);
+        items.forEach(u -> u.setPwd(null));   // NF-04：列表不回传密码密文
         return PageResult.of(total, items);
     }
 

@@ -15,11 +15,12 @@
           <span class="nm">{{ a.agentName }}</span>
           <span class="pf mono">{{ a.platformName }}</span>
           <span v-if="!a.enabled" class="pf mono off">停用</span>
+          <span v-else-if="a.projectState === 2" class="pf mono off">项目已归档</span>
         </div>
         <p>{{ a.agentDesc || '暂无简介' }}</p>
         <div class="from mono">来自项目：{{ a.projectName }} · 进度 {{ a.progress }}%</div>
         <button class="go mono" :disabled="!a.unlocked || !a.enabled" @click="enter(a)">
-          {{ a.enabled ? (a.unlocked ? '进入会话 →' : '未解锁 · ' + a.progress + '%') : '已停用' }}
+          {{ a.enabled ? (a.projectState === 2 ? '项目已归档' : (a.unlocked ? '进入会话 →' : '未解锁 · ' + a.progress + '%')) : '已停用' }}
         </button>
       </div>
     </section>

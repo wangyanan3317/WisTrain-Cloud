@@ -71,8 +71,12 @@ public class AgentChatService {
                 vo.setPlatformName(PLATFORMS.getOrDefault(agent.getAgentPlatform(), "OTHER"));
                 vo.setAgentDesc(agent.getAgentDesc());
                 vo.setEnabled(agent.getAgentState() == 1);
-                vo.setUnlocked(agent.getAgentState() == 1 && permissionService.satisfied(rule, progress));
+                Integer projectState = (Integer) row.get("projectState");
+                boolean projectActive = projectState == null || projectState == 1;
+                // 与 checkAccess 判定口径一致：项目归档即视为锁定（Q5），避免"展示已解锁、进入被拒"
+                vo.setUnlocked(agent.getAgentState() == 1 && projectActive && permissionService.satisfied(rule, progress));
                 vo.setProjectId(projectId);
+                vo.setProjectState(projectState);
                 vo.setProjectName((String) row.get("projectName"));
                 vo.setUnlockRule(rule.getUnlockRule());
                 vo.setUnlockThreshold(rule.getUnlockThreshold());
