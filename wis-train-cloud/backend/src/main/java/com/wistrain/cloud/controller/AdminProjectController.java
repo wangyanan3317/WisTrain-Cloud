@@ -111,15 +111,24 @@ public class AdminProjectController {
         return ApiResult.ok(memberMapper.listByProject(id));
     }
 
-    /** 批量分配员工：已加入的自动跳过 */
+    /** 批量分配员工：已加入的自动跳过；其它失败原因汇总回传（如项目未发布） */
     @PostMapping("/{id}/members")
     public ApiResult<Void> assign(@PathVariable Long id, @RequestBody AssignReq req) {
+        List<String> failed = new java.util.ArrayList<>();
+        List<String> skipped = new java.util.ArrayList<>();
         for (Long userId : req.getUserIds()) {
             try {
                 learningService.join(userId, id);
-            } catch (com.wistrain.cloud.common.BizException ignored) {
-                // 已加入的跳过
+            } catch (com.wistrain.cloud.common.BizException e) {
+                if (e.getMessage() != null && e.getMessage().contains("已加入")) {
+                    skipped.add("用户#" + userId);
+                } else {
+                    failed.add("用户#" + userId + "：" + e.getMessage());
+                }
             }
+        }
+        if (!failed.isEmpty()) {
+            throw new com.wistrain.cloud.common.BizException(String.join("；", failed));
         }
         return ApiResult.ok();
     }
