@@ -20,5 +20,5 @@ mybatis:
 wistrain:
   jwt-secret: ${JWT_SECRET:change-me-wistrain-cloud-jwt-secret-key-2026-in-prod}
   jwt-hours: 12                # NF-06：令牌有效期 12 小时
-  aes-key: ${AES_KEY:wistrain2026key16}   # NF-07：16 位密钥，生产环境必须走环境变量
+  aes-key: ${AES_KEY:wistrain2026key1}   # NF-07：16 字节密钥，生产环境必须走环境变量
   upload-dir: ${UPLOAD_DIR:./data/upload}

@@ -26,7 +26,9 @@ public interface ProjectAgentMapper {
     ProjectAgent findByProjectAndAgent(@Param("projectId") Long projectId, @Param("agentId") Long agentId);
 
     /** 管理端：项目的权限关联配置（含智能体信息，US-403 / 8 章配置页） */
-    @Select("SELECT pa.*, a.AGENT_NAME, a.AGENT_PLATFORM, a.AGENT_DESC, a.AGENT_STATE " +
+    @Select("SELECT pa.ID AS id, pa.PROJECT_ID AS projectId, pa.AGENT_ID AS agentId, " +
+            "pa.UNLOCK_RULE AS unlockRule, pa.UNLOCK_THRESHOLD AS unlockThreshold, pa.CREATE_TIME AS createTime, " +
+            "a.AGENT_NAME AS agentName, a.AGENT_PLATFORM AS agentPlatform, a.AGENT_DESC AS agentDesc, a.AGENT_STATE AS agentState " +
             "FROM tb_project_agent pa JOIN tb_agent a ON pa.AGENT_ID = a.AGENT_ID " +
             "WHERE pa.PROJECT_ID = #{projectId}")
     List<Map<String, Object>> listConfigByProject(Long projectId);

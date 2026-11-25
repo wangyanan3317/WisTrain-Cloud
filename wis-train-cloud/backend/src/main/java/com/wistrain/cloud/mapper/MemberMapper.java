@@ -24,15 +24,18 @@ public interface MemberMapper {
     int update(ProjectMember m);
 
     /** 员工「我的项目」：成员记录 + 项目信息（双表，用 Map 承载） */
-    @Select("SELECT m.MEMBER_ID, m.PROGRESS, m.LEARN_STATE, m.UNLOCK_TIME, m.JOIN_TIME, " +
-            "p.PROJECT_ID, p.PROJECT_NAME, p.PROJECT_DESC, p.PROJECT_STATE, p.PROJECT_START, p.PROJECT_END " +
+    @Select("SELECT m.MEMBER_ID AS memberId, m.PROGRESS AS progress, m.LEARN_STATE AS learnState, " +
+            "m.UNLOCK_TIME AS unlockTime, m.JOIN_TIME AS joinTime, " +
+            "p.PROJECT_ID AS projectId, p.PROJECT_NAME AS projectName, p.PROJECT_DESC AS projectDesc, " +
+            "p.PROJECT_STATE AS projectState, p.PROJECT_START AS projectStart, p.PROJECT_END AS projectEnd " +
             "FROM tb_project_member m JOIN tb_training_project p ON m.PROJECT_ID = p.PROJECT_ID " +
             "WHERE m.USER_ID = #{userId} ORDER BY m.MEMBER_ID DESC")
     List<Map<String, Object>> listMy(Long userId);
 
     /** 项目成员列表（含姓名，US-502） */
-    @Select("SELECT m.MEMBER_ID, m.PROGRESS, m.LEARN_STATE, m.UNLOCK_TIME, m.JOIN_TIME, " +
-            "u.USER_ID, u.USER_REALNAME, u.USER_LOGNAME " +
+    @Select("SELECT m.MEMBER_ID AS memberId, m.PROGRESS AS progress, m.LEARN_STATE AS learnState, " +
+            "m.UNLOCK_TIME AS unlockTime, m.JOIN_TIME AS joinTime, " +
+            "u.USER_ID AS userId, u.USER_REALNAME AS realname, u.USER_LOGNAME AS logname " +
             "FROM tb_project_member m JOIN tb_user u ON m.USER_ID = u.USER_ID " +
             "WHERE m.PROJECT_ID = #{projectId} ORDER BY m.MEMBER_ID DESC")
     List<Map<String, Object>> listByProject(Long projectId);
