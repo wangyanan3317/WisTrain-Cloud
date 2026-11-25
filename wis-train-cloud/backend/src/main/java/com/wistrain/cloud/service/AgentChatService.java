@@ -144,17 +144,81 @@ public class AgentChatService {
         return emitter;
     }
 
-    /** Mock 流式：按 12 字/60ms 切片返回，演示解锁-会话闭环 */
+    /** Mock 流式：按 4 字/80ms 切片返回，模拟真实打字机效果 */
     private void streamMock(SseEmitter emitter, Agent agent, String message) throws Exception {
-        String reply = "【" + agent.getAgentName() + "】收到你的问题：" + message +
-                "。这是演示回复——为本系统内置的 Mock 流式输出。" +
-                "在管理端为该智能体配置真实的第三方平台接口地址后，将转发至实际大模型服务。";
-        for (int i = 0; i < reply.length(); i += 12) {
-            String chunk = reply.substring(i, Math.min(i + 12, reply.length()));
+        String reply = mockReply(agent.getAgentName(), message);
+        for (int i = 0; i < reply.length(); i += 4) {
+            String chunk = reply.substring(i, Math.min(i + 4, reply.length()));
             emitter.send(SseEmitter.event().name("message").data(chunk));
-            Thread.sleep(60);
+            Thread.sleep(80);
         }
     }
+
+    /**
+     * Mock 问答知识库：关键词匹配内置回复（课程演示用）。
+     * 按条目顺序匹配，命中即返回；未命中走兜底话术。
+     */
+    private String mockReply(String agentName, String message) {
+        String q = message == null ? "" : message.toLowerCase();
+        for (MockQa qa : MOCK_QA_LIST) {
+            for (String k : qa.keywords) {
+                if (q.contains(k)) {
+                    return qa.reply;
+                }
+            }
+        }
+        return "【" + agentName + "】这个问题暂时超出我的知识范围啦。\n"
+                + "你可以这样问我：\n"
+                + "· 「你是谁 / 你能做什么」——了解我的能力\n"
+                + "· 「怎么解锁智能体」——权限规则说明\n"
+                + "· 「怎么搭建智能客服」——课程核心内容\n"
+                + "· 「知识库怎么建」——实战步骤讲解";
+    }
+
+    /** 单条 Mock 问答：关键词组 + 固定回复 */
+    private record MockQa(String[] keywords, String reply) { }
+
+    private static final List<MockQa> MOCK_QA_LIST = List.of(
+        new MockQa(new String[]{"你是谁", "介绍下你", "介绍一下", "self"},
+            "你好！我是智培云（WisTrain-Cloud）的 AI 实操助手。\n"
+            + "我由部门管理员统一接入、按培训项目权限解锁——你只有完成对应课程，才能和我对话。\n"
+            + "我可以陪你练习客服话术、解答课程疑问、演示流式对话效果。"),
+        new MockQa(new String[]{"你能做什么", "会什么", "能干", "功能", "用途"},
+            "我的主要能力有：\n"
+            + "1. 课程答疑：围绕「智能客服实战训练营」的 3 节课内容进行问答；\n"
+            + "2. 话术陪练：模拟客户咨询，练习应答流程；\n"
+            + "3. 知识查询：新品规格、价格政策、售后规范速查。\n"
+            + "试试问我「怎么搭建智能客服」！"),
+        new MockQa(new String[]{"解锁", "权限", "为什么不能用", "打不开", "403"},
+            "智能体的解锁由培训进度驱动：\n"
+            + "· 规则一「完成解锁」：学完项目全部资料（进度 100%）自动解锁；\n"
+            + "· 规则二「阈值解锁」：进度达到管理员设定的百分比（如 60%）解锁。\n"
+            + "解锁判定在后端实时计算，管理端修改规则立即生效。学习更多资料，我就会点亮！"),
+        new MockQa(new String[]{"搭建", "怎么建客服", "流程", "上线"},
+            "搭建智能客服的四步流程（对应课程第 1-3 课）：\n"
+            + "① 需求分析：梳理高频客户问题，确定客服边界；\n"
+            + "② 知识库构建：整理产品文档，切分为问答对并标注；\n"
+            + "③ 智能体编排：配置提示词、开场白与兜底话术，绑定知识库；\n"
+            + "④ 测试上线：灰度试运行，观察命中率后全量发布。"),
+        new MockQa(new String[]{"知识库", "文档", "语料"},
+            "知识库构建三要点：\n"
+            + "1. 语料质量优先——优先使用正式产品文档，删除过期内容；\n"
+            + "2. 问答对切分——一个知识点一条，控制在 200 字以内，检索更准；\n"
+            + "3. 持续运营——每周根据「未命中问题」补充语料。\n"
+            + "课程第 2 课视频里有完整演示。"),
+        new MockQa(new String[]{"你好", "您好", "hi", "hello", "在吗"},
+            "你好，很高兴见到你！我是你的培训实操助手。\n"
+            + "可以先问我「你是谁」或「你能做什么」，也可以直接提出课程相关问题。"),
+        new MockQa(new String[]{"谢谢", "感谢", "thanks"},
+            "不客气！学习路上有我陪跑。\n"
+            + "记得完成剩余课程资料——进度达标后还有新的智能体等你解锁哦！"),
+        new MockQa(new String[]{"培训", "项目", "课程"},
+            "当前培训安排：\n"
+            + "· 智能客服实战训练营（3 份资料，进行中）；\n"
+            + "· 新产品知识库培训（2 份资料，进行中）；\n"
+            + "· 信息安全合规培训（已结课归档）。\n"
+            + "在「学习中心」逐份标记已学，进度会实时更新并联动智能体解锁。")
+    );
 
     /** OpenAI 兼容流式：POST /chat/completions stream=true，解析 SSE data 行 */
     private void streamOpenAiCompat(SseEmitter emitter, Agent agent, String apiKey, String message) throws Exception {
