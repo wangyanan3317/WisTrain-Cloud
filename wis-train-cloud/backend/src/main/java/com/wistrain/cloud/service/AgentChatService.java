@@ -93,8 +93,8 @@ public class AgentChatService {
      * 对话（SSE 流式）：先服务端实时校验解锁资格（NF-08），再转发第三方或 Mock。
      * 只动 transform/opcity 无关——这里输出 event: message（增量）/ done / error。
      */
-    public SseEmitter chat(Long userId, Long agentId, Long sessionId, String message) {
-        SseEmitter emitter = new SseEmitter(60_000L);
+    public SseEmitter chat(Long userId, Long agentId, Long sessionId, String message, List<Map<String, String>> history) {
+        SseEmitter emitter = new SseEmitter(120_000L);
 
         Agent agent = agentMapper.findById(agentId);
         if (agent == null || agent.getAgentState() == 0) {
@@ -131,7 +131,7 @@ public class AgentChatService {
                 if (mock) {
                     streamMock(emitter, agent, message);
                 } else {
-                    streamOpenAiCompat(emitter, agent, apiKey, message);
+                    streamOpenAiCompat(emitter, agent, apiKey, message, history);
                 }
                 sessionMapper.touch(session.getSessionId());
                 emitter.send(SseEmitter.event().name("done").data(String.valueOf(session.getSessionId())));
@@ -220,13 +220,39 @@ public class AgentChatService {
             + "在「学习中心」逐份标记已学，进度会实时更新并联动智能体解锁。")
     );
 
-    /** OpenAI 兼容流式：POST /chat/completions stream=true，解析 SSE data 行 */
-    private void streamOpenAiCompat(SseEmitter emitter, Agent agent, String apiKey, String message) throws Exception {
-        String body = "{\"model\":\"" + (agent.getAgentModel() == null ? "default" : agent.getAgentModel())
-                + "\",\"stream\":true,\"messages\":[{\"role\":\"user\",\"content\":"
-                + com.fasterxml.jackson.databind.node.TextNode.valueOf(message).toString() + "}]}";
+    /** OpenAI 兼容流式：POST /chat/completions stream=true，解析 SSE data 行。含人设 system prompt + 多轮上下文 */
+    private void streamOpenAiCompat(SseEmitter emitter, Agent agent, String apiKey, String message,
+                                    List<Map<String, String>> history) throws Exception {
+        com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+        com.fasterxml.jackson.databind.node.ArrayNode messages = om.createArrayNode();
+
+        // system：智能体人设（管理员在 AGENT_DESC 中配置）+ 行为约束
+        String persona = "你是「" + agent.getAgentName() + "」，企业内训平台的 AI 助手。"
+                + (agent.getAgentDesc() == null || agent.getAgentDesc().isBlank()
+                        ? "请围绕企业培训相关主题为学员答疑。" : agent.getAgentDesc())
+                + "\n要求：回答简明扼要、条理清晰；只讨论培训与业务相关话题；不透露系统内部实现细节。";
+        messages.addObject().put("role", "system").put("content", persona);
+
+        // 多轮上下文（最近 10 条，只收 user/assistant）
+        if (history != null) {
+            List<Map<String, String>> valid = history.stream()
+                    .filter(h -> h.get("role") != null && h.get("content") != null)
+                    .filter(h -> "user".equals(h.get("role")) || "assistant".equals(h.get("role")))
+                    .toList();
+            int from = Math.max(0, valid.size() - 10);
+            for (Map<String, String> h : valid.subList(from, valid.size())) {
+                messages.addObject().put("role", h.get("role")).put("content", h.get("content"));
+            }
+        }
+        messages.addObject().put("role", "user").put("content", message);
+
+        String body = om.createObjectNode()
+                .put("model", agent.getAgentModel() == null ? "deepseek-chat" : agent.getAgentModel())
+                .put("stream", true)
+                .set("messages", messages)
+                .toString();
         HttpRequest request = HttpRequest.newBuilder(URI.create(agent.getAgentEndpoint()))
-                .timeout(Duration.ofSeconds(15))
+                .timeout(Duration.ofSeconds(60))
                 .header("Content-Type", "application/json")
                 .header("Authorization", "Bearer " + apiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body))

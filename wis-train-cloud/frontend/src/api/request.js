@@ -39,14 +39,14 @@ request.interceptors.response.use(
  * 用 fetch + ReadableStream 手动解析 SSE data 行。
  * onChunk(text) 逐片回调；返回 Promise（结束时 resolve sessionId）。
  */
-export async function chatStream(agentId, { sessionId, message, onChunk, onError }) {
+export async function chatStream(agentId, { sessionId, message, history, onChunk, onError }) {
   const resp = await fetch(`/api/agents/${agentId}/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + localStorage.getItem('wt_token')
     },
-    body: JSON.stringify({ sessionId, message })
+    body: JSON.stringify({ sessionId, message, history })
   })
   const reader = resp.body.getReader()
   const decoder = new TextDecoder()

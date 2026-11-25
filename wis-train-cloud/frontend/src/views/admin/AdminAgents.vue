@@ -49,9 +49,10 @@
         </el-form-item>
         <el-form-item label="接口地址">
           <el-input v-model="form.agentEndpoint" class="mono" placeholder="留空则使用 Mock 流式演示" />
+          <div class="endpoint-tip">DeepSeek: https://api.deepseek.com/chat/completions · 智谱: https://open.bigmodel.cn/api/paas/v4/chat/completions · 留空走 Mock</div>
         </el-form-item>
-        <el-form-item label="模型标识"><el-input v-model="form.agentModel" class="mono" placeholder="如 gpt-4o-mini / 自定义" /></el-form-item>
-        <el-form-item label="简介"><el-input v-model="form.agentDesc" type="textarea" :rows="2" placeholder="智能体用途与适用场景（员工会话页可见）" /></el-form-item>
+        <el-form-item label="模型标识"><el-input v-model="form.agentModel" class="mono" placeholder="如 deepseek-chat / glm-4-flash" /></el-form-item>
+        <el-form-item label="简介/人设"><el-input v-model="form.agentDesc" type="textarea" :rows="2" placeholder="智能体用途与人设——真实 AI 模式下会作为 system 提示词注入模型" /></el-form-item>
       </el-form>
       <template #footer>
         <el-button class="mono" @click="dlg = false">取消</el-button>
@@ -133,4 +134,5 @@ h1 { font-size: 34px; font-weight: 900; letter-spacing: -.02em; line-height: 1; 
 .bdg.ok { color: var(--ok); border-color: currentColor; }
 .bdg.off { color: var(--danger); border-color: currentColor; }
 .pager { margin-top: 16px; }
+.endpoint-tip { font-size: 11px; color: var(--text-3); line-height: 1.6; margin-top: 4px; }
 </style>

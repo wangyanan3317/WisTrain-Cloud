@@ -42,6 +42,6 @@ public class AgentChatController {
      */
     @PostMapping(value = "/{id}/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@PathVariable Long id, @RequestBody ChatReq req) {
-        return agentChatService.chat(UserContext.get().userId(), id, req.getSessionId(), req.getMessage());
+        return agentChatService.chat(UserContext.get().userId(), id, req.getSessionId(), req.getMessage(), req.getHistory());
     }
 }

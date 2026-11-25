@@ -73,10 +73,16 @@ async function send() {
   scrollToBottom()
 
   try {
-    // SSE 流式接收（fetch + ReadableStream）
+    // SSE 流式接收（fetch + ReadableStream），携带多轮上下文（不含本轮）
+    const history = msgs.value
+      .slice(0, -2)
+      .filter(m => m.text && !m.typing)
+      .slice(-10)
+      .map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
     const sid = await agentApi.chatStream(agentId, {
       sessionId: sessionId.value,
       message: text,
+      history,
       onChunk: chunk => {
         reply.text += chunk
         scrollToBottom()
